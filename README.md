@@ -7,5 +7,5 @@ Right click and drag to create a mirror
 and WASD to walk around.
 
 Some screenshots
-!(/screens/mirrors16.png)
-!(/screens/mirrors14.png)
+![](/screens/mirrors16.png)
+![](/screens/mirrors14.png)
