@@ -1,0 +1,266 @@
+generalize pathfinding for navmesh and generalize navmesh generation from concave polygons
+
+memoize shape properties (edges, normals, bounds, centre, flattened points)
+
+generalize tilemap and procedural world functions
+(grid, newtile drawtiles)
+
+have a "shape" class
+and maybe a poitn class
+
+a:dot(b)
+M:times(v)
+M:times(m2)
+v:dist(v2)
+
+add a bunch to geom class
+
+recursive mirrors (need intersection masks)
+
+overlapped mirrors (need to cull / sort)
+
+generalize the shape trimmer
+and normal generator
+and clockwise polygon maker
+and intersect mask shapes to get new mask shapes
+
+after all else is drawn, render mirrors
+draw( bounds, point of view, optional lens/area )
+draw takes "visibleshape" as params
+
+consider wall in front of mirror with mirror on both sides of wall
+find visible subsets of the mirror
+
+possibly get visible subsets of each line (if sort isn't sufficient)
+
+
+deep reflections occasionally flicker - issues with the 0 1 2 point trimming shortcut
+find out why intersection might be nil
+dont use the wasin ~= isin
+
+
+THERE ARE DEFINITELY BUGS IN SHAPE/line INTERSECTION FUNCTIONS
+
+
+tint all colors based on "depth"?
+hard to do without alpha
+ACTUALLY COLOR MODE COMBINE OR MODULATE MIGHT WORK
+
+occasional bug with negative canvas size? complains about non power of 2
+error happens when w or h of canvas is 23892034 some huge number
+I think it happens when player is on a mirror
+so I "skipped it"
+
+
+some reflection matrices (like 45 degree mirror or combination of horizontal and vertical) do not follow traditional form and mess up
+
+MIRROR DEPTH IS INCONSISTENT?
+maybe areas not correct
+
+maybe have a MAX SUBMIRRORS instead of (or in addition to) max depth
+aka after n mirrors of depth >1, no more mirrors of depth > 1
+
+IDEAS
+
+
+MAKE ENEMIES THAT YOU CAN ONLY SEE IF DEPTH > 0
+
+COLLISION CHECK + prevention
+
+GENERALIZED OBJECTS + draw functions + inarea function
+
+ATTACKS / shots
+
+CAMERA
+THIS MIGHT BE TRICKY, MIGHT ALSO BE TRIVIAL
+WOW THAT WAS EASY
+turns out I'm brilliant and already created an offset paramater
+
+
+FIX THAT ANNOYING WASIN ISIN THING
+I EVEN MADE IT A LINE LINE INTERSECTION
+MAYBE I NEED A (PARALEL) TEST
+BUT ISIN AND WASIN SHOULD BE THE SAME IF EDGE IS PARALLEL
+
+NEED AN OPTIMIZATION FOR WALLS THAT ARE COMPLETELY OFFSCREEN
+
+
+reflect world after walking through a mirror?
+
+collision normal is different if hit end point of a segment rather than midpoint
+
+SEE MIRRORS 6 - BUG
+a row of tiles is not drawn
+seems to not happen often, maybe fixed
+
+tile based world with "visible/explored/unknown" property on tiles, discover wall tiles and only draw objects if they are on a tile
+find the visible components of a line like a mirror
+
+whenever getTile is called, it has a frame number
+if thatt tile's lastUpdated number is less than the frame number, it is updated now.
+or some method updates all tiles in an area, and might be called multiple times for mirrors
+
+draw modes (reflections are just wireframes)
+
+maybe cap depth to 1 for the "update tiles" function that is recursive
+and have it overwrite itself in the depth > 0 functions
+
+
+WALLS SEEM TO SHIFT
+SET LINESTYLE OR LINEWIDTH TO MAKE IT CONSISTENT
+
+SOMEHOW BECAME STUCK ON A WALL
+don't know how I got there
+maybe I placed it on top of myself
+
+get tiles along a line, in order of nearest to start and furthest away
+two algorithms: one technically correct the other more "elegant"
+only check centre of tiles for visibility?
+and mark all as VISIBLE until one is a wall then mark all FOG or UNKNOWN
+
+example:
+change all VISIBLE to FOG, leave FOG and UNKNOWN in current states
+do raycasts of some sort
+maybe with radius and series of degrees
+these change some subset of tiles in a line from FOG or UNKNOWN to VISIBLE
+associate every object with a tile and only draw it if the tile that contains it is visible (or associate it with a set of objects and draw it if any of the tiles are visible, but only draw it once)  
+
+
+
+need a better "points on circle" algorithm (just do math.cos and sin for a = math.pi * i/16 ?
+http://en.wikipedia.org/wiki/Midpoint_circle_algorithm
+
+
+
+
+
+
+
+
+
+
+
+
+OLD LOVE (0.5) runs 3 times as fast with more code???
+do some comparisons to determine which version of love was the first to be slow (0.6 0.7 or 0.8) and use the previous version or learn SDL or complain on love forums and compare patch notes for love versions
+
+0.5 1500 fps with an image
+0.6 800-900 fps
+0.7 
+0.8 ~550 fps, 900 for a completely empty project
+
+
+
+maybe defaults changed (like lineMode colorMode blendMode and they slow it down)
+
+
+maybe just give up and learn sdl
+or something else
+http://www.sparkrift.com/2012/1/love2d-vs-allegro-vs-clanlib-vs-libgdx-vs-cocos2d-x-vs-monogame-vs-xna-vs-sfml
+http://getmoai.com/
+http://libgdx.badlogicgames.com/
+http://code.google.com/p/libgdx/
+
+
+love 0.5 was probably basically just a lua SDL binding
+
+
+
+reasd this
+http://www-cs-students.stanford.edu/~amitp/gameprog.html
+
+
+
+--perhaps have a high resolution but also a duplicate tile check to optimize
+perhaps have an approximation and then improve on it with individual raycasts for each missing tile during the draw function
+
+need an "inarea" and "inarc" function for reflection viewtesting
+
+WEIRD FLICKER WHEN I STAND STILL
+
+AND I CAN SEE MY REfLECTION EVEN WHEN I CANNOT SEE THE MIRROR
+NEED A visible subset of mirror
+
+and a proper player.vision radius
+
+could have multiple "viewing" objects, and calculate visibility for each viewpoint (player, reflection of player)
+would need to improve the circle function
+
+ideally it isn't so tilebased and 32 degrees covers all of the tiles
+
+
+
+some tiles are raycast every 2nd frame?
+or raycast twice per frame with a different result
+I think it is the set of tiles that are not covered by the raycast circle but are within d < 300 + unit * sqrt2/2 (a few on the 45 degree angle and a few on the edge)
+
+they flicker if they are in the fog based on some raycast but not in the fog based on a ray to the center
+
+
+
+MAP GENERATION
+
+RANDOM ROOMS WITH X Y W H and are connected to nearby existing rooms
+GIVE EACH ROOM N DOORS
+AND MAKE NEW ROOMS OVERLAP EXISTIGN ROOMS BUT NOT FILL IN THE EXISTING ROOM and NOT REMVOE EXISTING WALLS
+REMOVE A DOOR EACH TIME TWO ROOMS OVERLAP
+
+
+need a better map / room / path generation and also want to improve mirror rendering / optimizations / interactions with viewtiles and fog
+
+I can see outlines that are supposed to be black in the reflection because of the combine colormode
+
+
+
+make an android app with text recognition with an open source library like tesseract-ocr
+http://code.google.com/p/tesseract-ocr/
+
+
+MANAGED TO WALK INTO A CORNER AGAIN
+I want to know point of impact and "bounce" off of wall
+
+THE MAKE EXIT CODE OVERWRITES THE MAKE ROOM CODE AND ENDS UP CALLING ISWALL = TRUE FOLLOWED BY BAD ISWALL = FALSE CALL
+MOVE BOTH CALLS TO THE NEWTILE FUNCTION
+
+CLEAN UP DEAD ENDS AND MAKE MAP LOOK NICER / MORE INTERESTIGN / PATHING SMOOTHER
+
+make doors wider or dx > 1 sometimes
+
+also maybe hitwall evaluates out of order sometimes and fails for no reason
+
+
+MINIMAP SHOULD HAVE A SIZE OR SHAPE
+AND A BACKGROUND/BORDER
+and it should show the player
+
+can create big rooms that contain existing small rooms
+and might have rooms on corners / bad exits
+SOME EXITS ARE NOT FILLED IN
+AND SOME ROOMS ARE NOT CREATED EVEN WHEN THEY HAVE LOTS OF SPACE
+AND SOME ROOMS OVERLAP?????????
+
+for new rooms: iterate over each possible h (2 to 8) and then find the leftmost w1 and the rightmost w2
+and then pick a random number within the range, trying to maximize area
+
+SOMETIMES WALLS APPEAR IN FRONT OF YOU
+SHOULD REALLY GENERATE WALLS BEFORE YOU CANSEE THEM\
+this isn't a big deal if you stay inside the rooms, but if you get out you notice it because you see empty space
+
+possibly reflect the world after walking through a mirror
+and make all other objects bounce off of mirrors (like shots or enemies)
+aka multiple a world transform matrix every time you walk through mirror and use it for draw functions and stuff
+
+
+MAKE AN APP OR A PAINT NET PLUGIN OR NPP PLUGIN TO PICK A COLOR AND SET IT CLIPBOARD IN {r,g,b,optional alpha} format
+
+
+PUT SOME RANDOM TILES IN MEDIUM - LARGE ROOMS, FILL UP ~20% OF THE ROOM IN SMALL SECTIONS OF SOLID
+BUT DONT BLOCK THE EXITS/ENTRANCE
+
+
+
+CONVERT AREA BEHIND MIRROR TO A TILED AREA FOR COOLNESS
+
+
+
+nav mesh area generation based on list of obstacles (subtract a shape from an initially single face navmesh)
